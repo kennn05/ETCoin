@@ -1,0 +1,19 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Directory listing for /coin/</title>
+</head>
+<body>
+<h1>Directory listing for /coin/</h1>
+<hr>
+<ul>
+<li><a href="bin/">bin/</a></li>
+<li><a href="include/">include/</a></li>
+<li><a href="lib/">lib/</a></li>
+<li><a href="lib64/">lib64@</a></li>
+<li><a href="pyvenv.cfg">pyvenv.cfg</a></li>
+</ul>
+<hr>
+</body>
+</html>
