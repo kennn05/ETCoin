@@ -12,7 +12,7 @@ from cryptography.hazmat.backends import default_backend
 import base64
 import time
 os.system('clear')
-SERVER = 'http://192.168.43.29:5000'
+SERVER = 'https://laptop-ubuntu.tail6eefa7.ts.net'
 
 def banner():
     print("""⠀
