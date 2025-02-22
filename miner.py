@@ -100,7 +100,7 @@ class Miner:
                     if attempts % 1000 == 0:
                         self.sync_chain()
                         if not self.chain or self.chain[-1]['index'] != last['index']:
-                            self.print_status("Block outdated. Restarting...")
+                            self.print_status("Block has been mined by another miner. Waiting for new job....")
                             break
 
                 if self.valid_proof(last['proof'], new_block['proof']):
