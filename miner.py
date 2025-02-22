@@ -1,18 +1,18 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify                                        
 import requests
-import hashlib
+import hashlib                                                                   
 import json
-import time
+import time                                                                      
+import os
 from threading import Thread
-from datetime import datetime
-
+from datetime import datetime                                                    
 app = Flask(__name__)
-main_server = 'https://laptop-ubuntu.tail6eefa7.ts.net'
+main_server = 'https://laptop-ubuntu.tail6eefa7.ts.net'                           
 miner_address = None
 
 class Miner:
     def __init__(self):
-        self.chain = []
+        self.chain = []                                             
         self.pending = []
         self.syncing = False
         self.last_block_index = 0
@@ -32,7 +32,7 @@ class Miner:
     def validate_chain(self):
         for i in range(1, len(self.chain)):
             prev = self.chain[i-1]
-            curr = self.chain[i]
+            curr = self.chain[i] 
             if curr['previous_hash'] != hashlib.sha256(json.dumps(prev, sort_keys=True).encode()).hexdigest():
                 return False
             if not self.valid_proof(prev['proof'], curr['proof']):
@@ -51,12 +51,12 @@ class Miner:
     def mine(self):
         while True:
             self.sync_chain()
-            
+
             if self.chain and self.last_block_index != self.chain[-1]['index']:
                 if self.last_block_index > 0:
                     self.print_status(f"New block detected: #{self.chain[-1]['index']}")
                 self.last_block_index = self.chain[-1]['index']
-            
+
             # Check if coin supply cap is reached
             res = requests.get(f"{main_server}/current_reward")
             if res.status_code == 200:
@@ -68,7 +68,7 @@ class Miner:
                     self.cap_reached = False
             else:
                 block_reward_amount = 0.0
-            
+
             if not self.syncing and self.pending:
                 last = self.chain[-1]
                 new_block = {
@@ -91,7 +91,7 @@ class Miner:
                     self.print_status("Skipping reward transaction (cap reached)")
 
                 self.print_status(f"Mining block #{new_block['index']} with {len(new_block['transactions'])} transactions...")
-                
+
                 start_time = time.time()
                 attempts = 0
                 while not self.valid_proof(last['proof'], new_block['proof']):
@@ -132,7 +132,8 @@ def chain():
     return jsonify(miner.chain), 200
 
 if __name__ == '__main__':
-    miner_address = input("Wallet Address: ")
+    os.system('clear')
+    miner_address = input("Enter your Wallet Address: ")
     print('WELCOME TO ETCoin MINER')
     requests.post(f"{main_server}/nodes/register", json={'node': 'http://localhost:5001'})
     miner.sync_chain()
