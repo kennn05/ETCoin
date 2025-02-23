@@ -15,7 +15,8 @@ os.system('clear')
 SERVER = 'https://etcoin-server.tail6eefa7.ts.net'
 
 def banner():
-    print("""⠀
+    print("""\033[38;5;214m
+    
     ⠀⠀⠀⠀⠀⠀⠀⣀⣤⣴⣶⣾⣿⣿⣿⣿⣷⣶⣦⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⣠⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⣄⠀⠀⠀⠀⠀
     ⠀⠀⠀⣠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀⠀
@@ -30,7 +31,7 @@ def banner():
     ⠀⠀⠻⣿⣿⣿⣿⣿⣿⣿⣄⣰⣿⠁⢀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠀⠀
     ⠀⠀⠀⠙⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠋⠀⠀⠀
     ⠀⠀⠀⠀⠀⠙⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠋⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠻⠿⢿⣿⣿⣿⣿⡿⠿⠟⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀""")
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠻⠿⢿⣿⣿⣿⣿⡿⠿⠟⠛⠉⠀⠀⠀⠀⠀⠀\033[33m""")
 
 class Wallet:
     def __init__(self):
@@ -43,7 +44,8 @@ class Wallet:
         mnemo = Mnemonic("english")
         phrase = mnemo.generate()
         self.seed_phrase = phrase
-        print(f"\nSAVE THIS SEED: {phrase}\n")
+        print(f"\n\033[31mDO NOT SHARE THE PASSPHRASE BELLOW WITH ANYONE\n")
+        print(f"\n\033[0mPassphrase:\033[38;5;214m {phrase}\033[1;33m\n")
         seed = mnemo.to_seed(phrase)
         self.private_key = SigningKey.from_string(seed[:32], curve=SECP256k1)
         self.address = hashlib.sha256(
@@ -164,7 +166,7 @@ class Wallet:
     def balance(self):
         res = requests.get(f"{SERVER}/balance/{self.address}")
         balance = res.json().get('balance', 0)
-        print(f"\nWallet Balance: {balance:.5f} ETC")
+        print(f"\nWallet Balance: \033[1;92m{balance:.8f} ETC\033[1;33m")
 
     def get_transaction_history(self):
         os.system('clear')
@@ -193,9 +195,9 @@ class Wallet:
 
             transactions = []
             for tx in block.get('transactions', []):
-                sender = tx['sender'][:6] + '...' if tx['sender'] != '0' else '0...'
-                recipient = tx['recipient'][:6] + '...'
-                amount = f"{tx['amount']:.5f} ETC"
+                sender = tx['sender'][:100] if tx['sender'] != '0' else '0...'
+                recipient = tx['recipient'][:100] 
+                amount = f"{tx['amount']:.8f} ETC"
                 transactions.append(f"   {sender} -> {recipient}: {amount}")
 
             formatted_block = (
@@ -221,7 +223,7 @@ def menu():
         os.system("clear")
         banner()
         print("\n========== ETCoin Wallet ==========\n")
-        print("[1] Create Wallet\n[2] Load Wallet\n[3] Recover Wallet\n[4] Exit")
+        print("[1] Create Wallet\n[2] Login Wallet\n[3] Recover Wallet (Passphrase)\n[4] Exit")
         print("\n=====================================")
         choice = input("\nChoice: ")
 
@@ -256,7 +258,7 @@ def menu():
             os.system('clear')
             banner()
             print("\n========= ETCoin Wallet ========\n")
-            phrase = input("\nEnter SEED PHRASE: ")
+            phrase = input("\nEnter Passphrase: ")
             try:
                 wallet.recover_from_seed(phrase)
                 print(f"\nLogged in as: {wallet.username}")
@@ -290,15 +292,15 @@ def menu():
         banner()
         print("\n========= ETCoin Wallet =========\n")
         print(f"\nLogged in as: {wallet.username}")
-        print(f"\nWallet Address: {wallet.address}\n")
+        print(f"\nWallet Address: \033[0m{wallet.address}\033[1;33m\n")
         wallet.balance()
         print(f"==================================")
-        print("\n[1] Send\n[2] Transaction History\n[3] View Blockchain\n[4] View Private Key\n[5] View Seed Phrases\n[6] Exit")
+        print("\n[1] Send\n[2] Transaction History\n[3] View Blockchain\n[4] Show Private-Key\n[5] Show Passphrase\n[6] Exit")
         print(f"\n==================================")
         cmd = input("\nCommand: ")
         if cmd == '1':
             recipient = input("\nReceiver address: ")
-            amount = float(input("\nAmount: "))
+            amount = float(input("\nAmount (ETC): "))
             message = input("\nEnter to confirm..")
             print("\nProcessing Payment....\n")
             wallet.send(recipient, amount, message)
@@ -311,7 +313,7 @@ def menu():
                 print(f"\nBlock #{entry['block_index']} ({time.ctime(entry['timestamp'])})")
                 print(f"From: {tx['sender']}")
                 print(f"To: {tx['recipient']}")
-                print(f"Amount: {tx['amount']:.5f}")
+                print(f"Amount: {tx['amount']:.8f} ETC")
                 print(f"Message Hash: {tx['message']}")
             input("\nPress Enter to return to the menu...")
             os.system('clear')
