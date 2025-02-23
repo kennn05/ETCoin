@@ -7,7 +7,7 @@ import os
 from threading import Thread
 from datetime import datetime                                                    
 app = Flask(__name__)
-main_server = 'https://etcoin-server.tail6eefa7.ts.net/'
+main_server = 'https://etcoin-server.tail6eefa7.ts.net'
 miner_address = None
 
 def banner():
@@ -25,7 +25,11 @@ def banner():
     ⠀⠀⢰⣶⣾⣿⣿⣿⡏⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠁⠀⠀
     ⢰⣶⡎⠉⢹⣿⡏⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⢸⣿⣷⣶⡎⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠉⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\033[0m⠀""")
+    ⠀⠉⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ 
+
+
+
+    ⠀⠀\033[0m⠀""")
 
 
 class Miner:

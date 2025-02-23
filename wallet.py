@@ -12,7 +12,7 @@ from cryptography.hazmat.backends import default_backend
 import base64
 import time
 os.system('clear')
-SERVER = 'https://etcoin-server.tail6eefa7.ts.net/'
+SERVER = 'https://etcoin-server.tail6eefa7.ts.net'
 
 def banner():
     print("""\033[1;38;5;214m
