@@ -7,7 +7,7 @@ import os
 from threading import Thread
 from datetime import datetime                                                    
 app = Flask(__name__)
-main_server = 'https://laptop-ubuntu.tail6eefa7.ts.net'                           
+main_server = 'https://etcoin-server.tail6eefa7.ts.net/'
 miner_address = None
 
 class Miner:
