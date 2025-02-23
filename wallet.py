@@ -195,8 +195,8 @@ class Wallet:
             for tx in block.get('transactions', []):
                 sender = tx['sender'][:6] + '...' if tx['sender'] != '0' else '0...'
                 recipient = tx['recipient'][:6] + '...'
-                amount = f"{tx['amount']:.5f}"
-                transactions.append(f"   {sender} → {recipient}: {amount}")
+                amount = f"{tx['amount']:.5f} ETC"
+                transactions.append(f"   {sender} -> {recipient}: {amount}")
 
             formatted_block = (
                 f"🔗 Block #{block['index']}\n"

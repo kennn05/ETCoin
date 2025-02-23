@@ -57,7 +57,7 @@ class Miner:
                     self.print_status(f"New block detected: #{self.chain[-1]['index']}")
                 self.last_block_index = self.chain[-1]['index']
 
-            # Check if coin supply cap is reached
+        
             res = requests.get(f"{main_server}/current_reward")
             if res.status_code == 200:
                 block_reward_amount = res.json().get('reward', 0.0)
@@ -90,6 +90,7 @@ class Miner:
                 else:
                     self.print_status("Skipping reward transaction (cap reached)")
 
+                self.print_status(f"Found new block")
                 self.print_status(f"Mining block #{new_block['index']} with {len(new_block['transactions'])} transactions...")
 
                 start_time = time.time()
@@ -110,7 +111,7 @@ class Miner:
                     if res.status_code == 200:
                         self.print_status(f"Block #{new_block['index']} accepted by network!")
                         if block_reward_amount > 0:
-                            self.print_status(f"Reward: {block_reward_amount} coins added to {miner_address}")
+                            self.print_status(f"Reward: {block_reward_amount} ETC has been rewarded to {miner_address}")
                         # Force sync to update pending transactions
                         self.sync_chain()
                     else:
@@ -134,8 +135,12 @@ def chain():
 if __name__ == '__main__':
     os.system('clear')
     miner_address = input("Enter your Wallet Address: ")
-    print('WELCOME TO ETCoin MINER')
+    os.system('clear')
+    print('==============================================')
+    print('\nWELCOME TO ETCoin MINER by Hui Liao\n')
+    print('==============================================\n')
     requests.post(f"{main_server}/nodes/register", json={'node': 'http://localhost:5001'})
     miner.sync_chain()
     Thread(target=miner.mine, daemon=True).start()
-    app.run(port=5001)
+    app.run(port=5001) 
+    
