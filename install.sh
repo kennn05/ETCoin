@@ -48,4 +48,6 @@ chmod +x ../usr/bin/wallet
 
 chmod +x ../usr/bin/miner 
 
-source ~/.bashrc
+clear
+
+cat ~/ins.txt
