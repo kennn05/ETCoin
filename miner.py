@@ -124,7 +124,7 @@ class Miner:
                             last_hash_display = current_time
 
                     # Check for new blocks every 500 attempts
-                    if total_attempts % 1000 == 0:
+                    if total_attempts % 800 == 0:
                         self.sync_chain()
                         if self.chain[-1]['index'] != new_block['index'] - 1:
                             self.print_status("Block has been mined by another miner.\nLooking for New block...")
