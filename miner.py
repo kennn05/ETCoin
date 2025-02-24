@@ -106,7 +106,7 @@ class Miner:
                     guess_hash = hashlib.sha256(guess).hexdigest()
                     if guess_hash.startswith('000'):
                         new_block['proof'] = current_proof
-                        print(f"\nBlock #{new_block['index']} solved in {time.time()-start_time:.2f}s")
+                        print(f"Block #{new_block['index']} solved in {time.time()-start_time:.2f}s")
                         res = requests.post(f"{main_server}/block/receive", json=new_block)
                         if res.status_code == 200:
                             self.print_status(f"Block accepted! Reward: {block_reward_amount} ETC")
