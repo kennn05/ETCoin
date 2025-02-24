@@ -6,16 +6,13 @@ import time
 import os
 from threading import Thread
 from datetime import datetime
+
 app = Flask(__name__)
-main_server = 'https://etcoin-server.tail6eefa7.ts.net'
-
-
+main_server = 'https://client.tail7d9996.ts.net'  
 miner_address = None
 
 def banner():
-
     print(f"""\033[95m
-
     ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⢀⣀⡿⠿⠿⠿⠿⠿⠿⢿⣀⣀⣀⣀⣀⡀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠸⠿⣇⣀⣀⣀⣀⣀⣀⣸⠿⢿⣿⣿⣿⡇⠀⠀
@@ -28,9 +25,8 @@ def banner():
     ⠀⠀⢰⣶⣾⣿⣿⣿⡏⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠁⠀⠀
     ⢰⣶⡎⠉⢹⣿⡏⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⢸⣿⣷⣶⡎⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠉⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-
-    ⠀⠀""")
+    ⠀⠉⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    """)
 
 class Miner:
     def __init__(self):
@@ -51,20 +47,10 @@ class Miner:
         except requests.exceptions.RequestException:
             self.print_status("Failed to sync with main server")
 
-    def validate_chain(self):
-        for i in range(1, len(self.chain)):
-            prev = self.chain[i-1]
-            curr = self.chain[i]
-            if curr['previous_hash'] != hashlib.sha256(json.dumps(prev, sort_keys=True).encode()).hexdigest():
-                return False
-            if not self.valid_proof(prev['proof'], curr['proof']):
-                return False
-        return True
-
     @staticmethod
     def valid_proof(last, current):
         guess = f"{last}{current}".encode()
-        return hashlib.sha256(guess).hexdigest().startswith('00000')
+        return hashlib.sha256(guess).hexdigest().startswith('000')  # 3 zeros now
 
     def print_status(self, message):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -76,19 +62,17 @@ class Miner:
 
             if self.chain and self.last_block_index != self.chain[-1]['index']:
                 if self.last_block_index > 0:
-                    self.print_status(f"New block detected: #{self.chain[-1]['index']}")
+                    self.print_status(f"Block #{self.chain[-1]['index']} Added into Blockchain")
                 self.last_block_index = self.chain[-1]['index']
 
             res = requests.get(f"{main_server}/current_reward")
-            if res.status_code == 200:
-                block_reward_amount = res.json().get('reward', 0.0)
-                if block_reward_amount <= 0 and not self.cap_reached:
-                    self.print_status("The blockchain's coins supply has reached the limit (5,000,000 coins).")
-                    self.cap_reached = True
-                elif block_reward_amount > 0:
-                    self.cap_reached = False
-            else:
-                block_reward_amount = 0.0
+            block_reward_amount = res.json().get('reward', 0.0) if res.status_code == 200 else 0.0
+
+            if block_reward_amount <= 0 and not self.cap_reached:
+                self.print_status("Blockchain coin supply cap reached (1,000,000,000 ETC)")
+                self.cap_reached = True
+            elif block_reward_amount > 0:
+                self.cap_reached = False
 
             if not self.syncing and self.pending:
                 last = self.chain[-1]
@@ -107,57 +91,45 @@ class Miner:
                         'amount': block_reward_amount,
                         'message': hashlib.sha256(b'Block reward').hexdigest()
                     })
-                else:
-                    self.print_status("Skipping reward transaction (cap reached)")
-
-                self.print_status(f"Found new block")
-                self.print_status(f"Mining block #{new_block['index']} with {len(new_block['transactions'])} transactions...")
-
+                self.print_status(f"Found New Block!!")
+                self.print_status(f"Mining block #{new_block['index']} with {len(new_block['transactions'])} txs")
+                
                 start_time = time.time()
                 last_proof = last['proof']
                 current_proof = 0
                 total_attempts = 0
                 last_hash_display = start_time
                 prefix = f"{last_proof}".encode()
-
-                solved = False
+                
                 while True:
                     guess = prefix + str(current_proof).encode()
                     guess_hash = hashlib.sha256(guess).hexdigest()
-                    if guess_hash.startswith('00000'):
-                        solved = True
+                    if guess_hash.startswith('000'):
+                        new_block['proof'] = current_proof
+                        print(f"\nBlock #{new_block['index']} solved in {time.time()-start_time:.2f}s")
+                        res = requests.post(f"{main_server}/block/receive", json=new_block)
+                        if res.status_code == 200:
+                            self.print_status(f"Block accepted! Reward: {block_reward_amount} ETC")
                         break
                     current_proof += 1
                     total_attempts += 1
-
+                    
+                    # Update hashrate display every 0.1 seconds
                     current_time = time.time()
                     if current_time - last_hash_display >= 0.1:
                         elapsed = current_time - start_time
                         if elapsed > 0:
                             hashrate = total_attempts / elapsed
-                            print(f"\rCurrent Hashrate: {hashrate:.2f} H/s", end="", flush=True)
+                            print(f"\rCurrent Hashrate: {hashrate:.2f} H/s  Last Hash: {guess_hash[:12]}...", end="", flush=True)
                             last_hash_display = current_time
 
+                    # Check for new blocks every 500 attempts
                     if total_attempts % 1000 == 0:
                         self.sync_chain()
-                        if not self.chain or self.chain[-1]['index'] != last['index']:
-                            self.print_status("Block has been mined by another miner. Waiting for new job....")
+                        if self.chain[-1]['index'] != new_block['index'] - 1:
+                            self.print_status("\nBlock has been mined by another miner.\nLooking for New block...")
                             break
-
-                if solved:
-                    print()  # Move to new line after hashrate display
-                    new_block['proof'] = current_proof
-                    self.print_status(f"Block #{new_block['index']} solved! Proof: {new_block['proof']}")
-                    self.print_status(f"Time taken: {time.time() - start_time:.2f} seconds")
-                    res = requests.post(f"{main_server}/block/receive", json=new_block)
-                    if res.status_code == 200:
-                        self.print_status(f"Block #{new_block['index']} accepted by network!")
-                        if block_reward_amount > 0:
-                            self.print_status(f"Reward: {block_reward_amount} ETC has been rewarded to {miner_address}")
-                        self.sync_chain()
-                    else:
-                        self.print_status(f"Block #{new_block['index']} rejected by network")
-            time.sleep(0.1)
+           # time.sleep(0.01)
 
 miner = Miner()
 
@@ -168,16 +140,12 @@ def receive_block():
     miner.sync_chain()
     return 'Block received', 200
 
-@app.route('/chain')
-def chain():
-    return jsonify(miner.chain), 200
-
 if __name__ == '__main__':
     os.system('clear')
     miner_address = input("Enter your Wallet Address: ")
     os.system('clear')
     print('==============================================')
-    print('\n        WELCOME TO ETCoin MINER \n')
+    print('\n        ETCoin MINER - Turbo v2\n')
     print('==============================================\n')
     banner()
     miner.sync_chain()
