@@ -8,7 +8,7 @@ from threading import Thread
 from datetime import datetime
 
 app = Flask(__name__)
-main_server = 'https://client.tail7d9996.ts.net'  
+main_server = 'https://etcoin-server.tail6eefa7.ts.net'  
 miner_address = None
 
 def banner():
@@ -142,6 +142,7 @@ def receive_block():
 
 if __name__ == '__main__':
     os.system('clear')
+    banner()
     miner_address = input("Enter your Wallet Address: ")
     os.system('clear')
     print('==============================================')
