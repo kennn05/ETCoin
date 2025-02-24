@@ -127,7 +127,7 @@ class Miner:
                     if total_attempts % 1000 == 0:
                         self.sync_chain()
                         if self.chain[-1]['index'] != new_block['index'] - 1:
-                            self.print_status("\nBlock has been mined by another miner.\nLooking for New block...")
+                            self.print_status("Block has been mined by another miner.\nLooking for New block...")
                             break
            # time.sleep(0.01)
 
@@ -143,7 +143,7 @@ def receive_block():
 if __name__ == '__main__':
     os.system('clear')
     banner()
-    miner_address = input("Enter your Wallet Address: ")
+    miner_address = ("4a77298f4893880fbfe183e6540eb4fcd9f51be2d1c4891c4edd00245d1a7be9")
     os.system('clear')
     print('==============================================')
     print('\n        ETCoin MINER - Turbo v2\n')
