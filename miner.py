@@ -8,6 +8,9 @@ from threading import Thread
 from datetime import datetime
 app = Flask(__name__)
 main_server = 'https://etcoin-server.tail6eefa7.ts.net'
+#main_server = 'http://192.168.43.79:5000'
+
+
 miner_address = None
 
 def banner():
