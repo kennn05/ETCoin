@@ -32,7 +32,8 @@ pip install requests
 
 pip install cryptography 
 
-echo "Type wallet to access wallet and miner for mining ETCoin" > ~/ins.txt 
+echo "INSTALL SUCCESSFULL 
+Type wallet to access wallet and miner for mining ETCoin" > ~/ins.txt 
 
 git clone https://github.com/kennn05/ETCoin
 
