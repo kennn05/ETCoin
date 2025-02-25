@@ -44,6 +44,10 @@ echo "python ~/ETCoin/wallet.py" > ~/../usr/bin/wallet
 
 echo "python ~/ETCoin/miner.py" > ~/../usr/bin/miner 
 
+echo "python ~/ETCoin/price.py" > ~/../usr/bin/price
+
+chmod +x ~/../usr/bin/price
+
 chmod +x ~/../usr/bin/wallet
 
 chmod +x ~/../usr/bin/miner 
