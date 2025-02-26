@@ -158,15 +158,15 @@ class Wallet:
             'message': hashed_msg
         }
         res = requests.post(f"{SERVER}/tx/new", json=tx)
-        os.system('clear')
-        print("Transaction status: ", res.text)
+        print("\nTransaction status: ", res.text)
         os.system('sleep 3')
-        os.system('clear')
-
+        confirmation = input('\nClick enter to continue...')
+        os.system('clear')        
+        
     def balance(self):
         res = requests.get(f"{SERVER}/balance/{self.address}")
         balance = res.json().get('balance', 0)
-        print(f"\nWallet Balance: \033[1;92m{balance:.8f} ETC\033[1;33m")
+        print(f"\nWallet Balance: \033[1;92m{balance:.5f} ETC\033[1;33m")
 
     def get_transaction_history(self):
         os.system('clear')
@@ -195,10 +195,10 @@ class Wallet:
 
             transactions = []
             for tx in block.get('transactions', []):
-                sender = tx['sender'][:100] if tx['sender'] != '0' else '0...'
-                recipient = tx['recipient'][:100] 
-                amount = f"{tx['amount']:.8f} ETC"
-                transactions.append(f"   {sender} -> {recipient}: {amount}")
+                sender = tx['sender'][:8] + '... ' if tx['sender'] != '0' else '   Reward   '
+                recipient = tx['recipient'][:8] + '... '
+                amount = f"{tx['amount']:.5f} ETC"
+                transactions.append(f"   {sender} --> {recipient}: {amount}")
 
             formatted_block = (
                 f"🔗 Block #{block['index']}\n"
@@ -302,7 +302,7 @@ def menu():
             recipient = input("\nReceiver address: ")
             amount = float(input("\nAmount (ETC): "))
             message = input("\nEnter to confirm..")
-            print("\nProcessing Payment....\n")
+            print("\nProcessing Payment....")
             wallet.send(recipient, amount, message)
         elif cmd == '2':
             history = wallet.get_transaction_history()
@@ -338,7 +338,7 @@ def menu():
         elif cmd == '5':
             os.system('clear')
             print(f"\n###############################")
-            print(f"\nSeed Phrase:\n{wallet.seed_phrase}")
+            print(f"\n\033[0mPasphrase:\n\033[38;5;214m {wallet.seed_phrase}\033[1;33m")
             print(f"\n###############################\n")
             input("Press Enter to return to the menu...")
             os.system('clear')
