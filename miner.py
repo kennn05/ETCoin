@@ -9,6 +9,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 main_server = 'https://etcoin-server.tail6eefa7.ts.net' 
+#main_server = 'http://0.0.0.0:5000'
 miner_address = None
 
 def banner():
@@ -47,10 +48,11 @@ class Miner:
         except requests.exceptions.RequestException:
             self.print_status("Failed to sync with main server")
 
-    @staticmethod
-    def valid_proof(last, current):
-        guess = f"{last}{current}".encode()
-        return hashlib.sha256(guess).hexdigest().startswith('000')  # 3 zeros now
+    def valid_proof(self, last_proof, current_proof):
+        difficulty = 3 + (len(self.chain) // 2016)
+        guess = f"{last_proof}{current_proof}".encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+        return guess_hash.startswith('0' * difficulty)
 
     def print_status(self, message):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -74,7 +76,7 @@ class Miner:
             elif block_reward_amount > 0:
                 self.cap_reached = False
 
-            if not self.syncing and self.pending:
+            if not self.syncing:
                 last = self.chain[-1]
                 new_block = {
                     'index': len(self.chain) + 1,
@@ -104,7 +106,7 @@ class Miner:
                 while True:
                     guess = prefix + str(current_proof).encode()
                     guess_hash = hashlib.sha256(guess).hexdigest()
-                    if guess_hash.startswith('000'):
+                    if self.valid_proof(last_proof, current_proof):
                         new_block['proof'] = current_proof
                         print(f"Block #{new_block['index']} solved in {time.time()-start_time:.2f}s")
                         res = requests.post(f"{main_server}/block/receive", json=new_block)
@@ -129,7 +131,6 @@ class Miner:
                         if self.chain[-1]['index'] != new_block['index'] - 1:
                             self.print_status("Block has been mined by another miner.\nLooking for New block...")
                             break
-           # time.sleep(0.01)
 
 miner = Miner()
 
