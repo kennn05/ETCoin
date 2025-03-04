@@ -11,6 +11,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 import base64
 import time
+import glob
 os.system('clear')
 SERVER = 'https://etcoin-server.tail6eefa7.ts.net'
 
@@ -211,6 +212,116 @@ class Wallet:
             formatted.append(formatted_block)
         return '\n'.join(formatted)
 
+    def blockchain_explorer(self):
+        while True:
+            os.system('clear')
+            banner()
+            print("\n======== Blockchain Explorer ========\n")
+            res = requests.get(f"{SERVER}/chain")
+            if res.status_code != 200:
+                print("Failed to fetch blockchain")
+                return
+            
+            chain = res.json().get('chain', [])
+            total_blocks = len(chain)
+            
+            print(f"[1] View Recent Blocks (Last 10)")
+            print(f"[2] Search Block by Index")
+            print(f"[3] Search Block by Hash")
+            print(f"[4] Network Statistics")
+            print(f"[5] Download Blockchain Data")
+            print(f"[6] Back to Main Menu")
+            choice = input("\nChoose an option: ")
+
+            if choice == '1':
+                self.show_recent_blocks(chain[-10:])
+            elif choice == '2':
+                index = input("Enter block index: ")
+                self.search_block_by_index(chain, index)
+            elif choice == '3':
+                block_hash = input("Enter block hash: ")
+                self.search_block_by_hash(chain, block_hash)
+            elif choice == '4':
+                self.show_network_stats(chain)
+            elif choice == '5':
+                self.download_blockchain(chain)
+            elif choice == '6':
+                break
+            else:
+                print("Invalid choice!")
+                time.sleep(1)
+
+    def show_recent_blocks(self, blocks):
+        os.system('clear')
+        print(f"\n=== Last {len(blocks)} Blocks ===")
+        for block in reversed(blocks):
+            print(f"\nBlock #{block['index']}")
+            print(f"Timestamp: {time.ctime(block['timestamp'])}")
+            print(f"Transactions: {len(block.get('transactions', []))}")
+            print(f"Hash: {hashlib.sha256(json.dumps(block, sort_keys=True).encode()).hexdigest()}")
+        input("\nPress Enter to continue...")
+
+    def search_block_by_index(self, chain, index):
+        try:
+            index = int(index)
+            block = next((b for b in chain if b['index'] == index), None)
+            if block:
+                self.display_block_details(block)
+            else:
+                print("Block not found!")
+                time.sleep(1)
+        except ValueError:
+            print("Invalid index!")
+            time.sleep(1)
+
+    def search_block_by_hash(self, chain, block_hash):
+        block = next((b for b in chain if 
+                     hashlib.sha256(json.dumps(b, sort_keys=True).encode()).hexdigest() == block_hash), None)
+        if block:
+            self.display_block_details(block)
+        else:
+            print("Block not found!")
+            time.sleep(1)
+
+    def display_block_details(self, block):
+        os.system('clear')
+        print(f"\n=== Block #{block['index']} Details ===")
+        print(f"Timestamp: {time.ctime(block['timestamp'])}")
+        print(f"Previous Hash: {block['previous_hash']}")
+        print(f"Proof: {block['proof']}")
+        print(f"Transactions ({len(block.get('transactions', []))}):")
+        for tx in block.get('transactions', []):
+            print(f"  {tx['sender'][:8]}... → {tx['recipient'][:8]}... : {tx['amount']} ETC")
+        input("\nPress Enter to continue...")
+
+    def show_network_stats(self, chain):
+        os.system('clear')
+        total_blocks = len(chain)
+        total_txs = sum(len(b.get('transactions', [])) for b in chain)
+        total_coins = sum(tx['amount'] for b in chain for tx in b.get('transactions', []) if tx['sender'] == '0')
+        
+        print("\n=== Network Statistics ===")
+        print(f"Total Blocks: {total_blocks}")
+        print(f"Total Transactions: {total_txs}")
+        print(f"Total Coins Minted: {total_coins:.2f} ETC")
+        input("\nPress Enter to continue...")
+
+    def download_blockchain(self, chain):
+        filename = f"blockchain_{time.strftime('%Y%m%d%H%M%S')}.json"
+        with open(filename, 'w') as f:
+            json.dump(chain, f, indent=2)
+        print(f"\nBlockchain saved to {filename}")
+        time.sleep(2)
+
+def get_blockchain_length():
+    try:
+        res = requests.get(f"{SERVER}/chain", timeout=5)
+        if res.status_code == 200:
+            return len(res.json().get('chain', []))
+        return 0
+    except:
+        return 0
+
 def menu():
     while True:
         wallet = Wallet()
@@ -242,18 +353,28 @@ def menu():
             os.system('clear')
             banner()
             print("\n========= ETCoin Wallet ========\n")
-            print("Available Wallet in this Device\n")
-            os.system('ls -1 *.wallet')
-            print("\n==================================")
-            path = input("\n\nSELECT WALLET: ")
-            try:
-                wallet.load(path)
-                os.system('clear')
-                break
-            except Exception as e:
-                print(f"Failed to load wallet: {e}")
+            wallets = glob.glob('*.wallet')
+            if not wallets:
+                print("No wallets found!")
                 input("Press Enter to continue...")
                 continue
+                
+            print("Available Wallets:\n")
+            for idx, w in enumerate(wallets, 1):
+                print(f"[{idx}] {w}")
+                
+            try:
+                selection = int(input("\nSelect wallet number: "))
+                if 1 <= selection <= len(wallets):
+                    wallet.load(wallets[selection-1])
+                    os.system('clear')
+                    break
+                else:
+                    print("Invalid selection!")
+                    time.sleep(1)
+            except:
+                print("Invalid input!")
+                time.sleep(1)
         elif choice == '3':
             os.system('clear')
             banner()
@@ -290,12 +411,13 @@ def menu():
 
     while True:
         banner()
+        blockchain_length = get_blockchain_length()
         print("\n========= ETCoin Wallet =========\n")
         print(f"\nLogged in as: {wallet.username}")
         print(f"\nWallet Address: \033[0m{wallet.address}\033[1;33m\n")
         wallet.balance()
         print(f"==================================")
-        print("\n[1] Send\n[2] Transaction History\n[3] View Blockchain\n[4] Show Private-Key\n[5] Show Passphrase\n[6] Exit")
+        print(f"\n[1] Send\n[2] Transaction History\n[3] View Blockchain ({blockchain_length} blocks)\n[4] Show Private-Key\n[5] Show Passphrase\n[6] Exit")
         print(f"\n==================================")
         cmd = input("\nCommand: ")
         if cmd == '1':
@@ -318,15 +440,7 @@ def menu():
             input("\nPress Enter to return to the menu...")
             os.system('clear')
         elif cmd == '3':
-            res = requests.get(f"{SERVER}/chain")
-            if res.status_code == 200:
-                chain = res.json().get('chain', [])
-                os.system('clear')
-                print(f"\nBlockchain length: {len(chain)}")
-                print("\n" + wallet.format_blockchain(chain))
-            else:
-                print("\nFailed to fetch blockchain")
-            input("\nPress Enter to return to the menu...")
+            wallet.blockchain_explorer()
             os.system('clear')
         elif cmd == '4':
             os.system('clear')
