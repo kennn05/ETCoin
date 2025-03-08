@@ -144,7 +144,7 @@ def receive_block():
 if __name__ == '__main__':
     os.system('clear')
     banner()
-    miner_address = ("6842193366513bbe90b5178fafa706f565eefb662f465e0d28e32b94f7b6b541")
+    miner_address = input("Enter Wallet Address: ")
     os.system('clear')
     print('==============================================')
     print('\n        ETCoin MINER - Turbo v2\n')
